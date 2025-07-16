@@ -1,0 +1,11 @@
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:{{ filebeat_version }}
+    container_name: filebeat
+    restart: always
+    volumes:
+      - /var/log/nginx:/var/log/nginx:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    command: ["--strict.perms=false"]

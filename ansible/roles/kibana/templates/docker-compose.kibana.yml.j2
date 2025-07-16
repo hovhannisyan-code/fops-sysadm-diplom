@@ -1,0 +1,9 @@
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:{{ kibana_version }}
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS={{ groups['elasticsearch'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^(.*)$', 'http://\\1:9200') | join(',') }}
+    restart: unless-stopped

@@ -1,0 +1,45 @@
+- name: Ensure datasource provisioning directory exists
+  file:
+    path: /etc/grafana/provisioning/datasources
+    state: directory
+    owner: root
+    group: grafana
+    mode: '0755'
+
+- name: Deploy Prometheus datasource config
+  template:
+    src: datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/datasource.yml
+    owner: root
+    group: grafana
+    mode: '0644'
+
+- name: Ensure dashboard JSON directory exists
+  file:
+    path: /etc/grafana/provisioning/dashboards
+    state: directory
+    owner: root
+    group: grafana
+    mode: '0755'
+
+- name: Copy dashboard provisioning config
+  copy:
+    src: dashboards.yml
+    dest: /etc/grafana/provisioning/dashboards/dashboards.yml
+    owner: root
+    group: grafana
+    mode: '0644'
+
+- name: Copy dashboard JSON files
+  ansible.builtin.copy:
+    src: "dashboards/{{ item | basename }}"
+    dest: "/etc/grafana/provisioning/dashboards/{{ item | basename }}"
+    owner: root
+    group: grafana
+    mode: '0644'
+  loop: "{{ lookup('fileglob', 'roles/grafana/files/dashboards/*.json', wantlist=True) }}"
+
+- name: Restart Grafana to apply dashboard changes
+  systemd:
+    name: grafana-server
+    state: restarted

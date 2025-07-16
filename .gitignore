@@ -1,0 +1,9 @@
+.vscode/
+*.tfstate
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
+.terraform/
+
+# Ignore all .deb files
+*.deb

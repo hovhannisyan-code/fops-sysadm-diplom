@@ -1,0 +1,34 @@
+---
+- name: Configure web servers
+  hosts: web
+  become: true
+  roles:
+    - nginx
+    - nginx_exporter
+    - nginx_log_exporter
+    - node_exporter
+    - filebeat
+
+- name: Configure Prometheus server
+  hosts: prometheus
+  become: true
+  roles:
+    - prometheus
+
+- name: Configure Grafana server
+  hosts: grafana
+  become: true
+  roles:
+    - grafana
+
+- name: Configure Еlasticsearch server
+  hosts: elasticsearch
+  become: true
+  roles:
+    - elasticsearch
+
+- name: Configure Kibana server
+  hosts: kibana
+  become: true
+  roles:
+    - kibana

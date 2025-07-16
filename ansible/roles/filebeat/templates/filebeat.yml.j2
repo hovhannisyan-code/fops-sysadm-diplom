@@ -1,0 +1,12 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/nginx/access.log
+      - /var/log/nginx/error.log
+
+output.elasticsearch:
+  hosts: {{ groups['elasticsearch'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^(.*)$', 'http://\\1:9200') | list }}
+
+setup.kibana:
+  host: {{ hostvars[groups['kibana'][0]].ansible_host }}:5601

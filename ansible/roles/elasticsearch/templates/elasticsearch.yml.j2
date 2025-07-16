@@ -1,0 +1,17 @@
+# ======================== Elasticsearch Configuration =========================
+
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+# Enable listening on all interfaces
+network.host: 0.0.0.0
+http.port: 9200
+
+# Disable security features
+xpack.security.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+# Cluster settings
+cluster.initial_master_nodes: ["{{ ansible_hostname }}"]

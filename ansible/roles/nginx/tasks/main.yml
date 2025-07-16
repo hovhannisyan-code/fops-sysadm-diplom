@@ -1,0 +1,38 @@
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Ensure Nginx is started and enabled on boot
+  systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- name: Allow SSH (port 22) through the firewall
+  ufw:
+    rule: allow
+    port: 22
+    proto: tcp
+
+- name: Allow HTTP and HTTPS traffic through the firewall
+  ufw:
+    rule: allow
+    name: 'Nginx Full'
+
+- name: Enable UFW firewall
+  ufw:
+    state: enabled
+
+
+- name: Copy index.html template
+  template:
+    src: index.html.j2
+    dest: /var/www/html/index.html
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- import_tasks: stub_status.yml

@@ -1,0 +1,53 @@
+---
+- name: Install nginx-prometheus-exporter
+  become: true
+  shell: |
+    curl -sLO https://github.com/nginxinc/nginx-prometheus-exporter/releases/download/v1.1.0/nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz && \
+    tar xzvf nginx-prometheus-exporter_1.1.0_linux_amd64.tar.gz && \
+    mv nginx-prometheus-exporter /usr/local/bin/ && \
+    rm -rf nginx-prometheus-exporter*
+
+- name: Create systemd service for nginx-prometheus-exporter
+  become: true
+  copy:
+    dest: /etc/systemd/system/nginx_exporter.service
+    content: |
+      [Unit]
+      Description=Nginx Prometheus Exporter
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/local/bin/nginx-prometheus-exporter \
+        --web.listen-address=0.0.0.0:9113 \
+        --nginx.scrape-uri http://127.0.0.1:8080/stub_status
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Start and enable Nginx exporter
+  become: true
+  systemd:
+    name: nginx_exporter
+    enabled: true
+    state: started
+
+- name: Ensure UFW is installed
+  become: true
+  apt:
+    name: ufw
+    state: present
+    update_cache: yes
+
+- name: Allow Node Exporter port 9113/tcp via UFW
+  become: true
+  ufw:
+    rule: allow
+    port: "9113"
+    proto: tcp
+
+- name: Ensure UFW is enabled
+  become: true
+  ufw:
+    state: enabled
+    policy: allow

@@ -1,0 +1,66 @@
+---
+- name: Stop Node Exporter if running
+  become: true
+  systemd:
+    name: node_exporter
+    state: stopped
+  ignore_errors: true
+
+- name: Install Node Exporter
+  become: true
+  shell: |
+    useradd --no-create-home --shell /bin/false node_exporter || true
+    cd /opt && \
+    curl -LO https://github.com/prometheus/node_exporter/releases/download/v1.8.1/node_exporter-1.8.1.linux-amd64.tar.gz && \
+    tar xvf node_exporter-1.8.1.linux-amd64.tar.gz && \
+    cp -f node_exporter-1.8.1.linux-amd64/node_exporter /usr/local/bin/ && \
+    rm -rf node_exporter*
+  args:
+    executable: /bin/bash
+
+- name: Create systemd service for Node Exporter
+  become: true
+  copy:
+    dest: /etc/systemd/system/node_exporter.service
+    content: |
+      [Unit]
+      Description=Node Exporter
+      After=network.target
+
+      [Service]
+      User=node_exporter
+      ExecStart=/usr/local/bin/node_exporter
+
+      [Install]
+      WantedBy=default.target
+
+- name: Reload systemd daemon
+  become: true
+  command: systemctl daemon-reexec
+
+- name: Start and enable Node Exporter
+  become: true
+  systemd:
+    name: node_exporter
+    enabled: true
+    state: started
+
+- name: Ensure UFW is installed
+  become: true
+  apt:
+    name: ufw
+    state: present
+    update_cache: yes
+
+- name: Allow Node Exporter port 9100/tcp via UFW
+  become: true
+  ufw:
+    rule: allow
+    port: "9100"
+    proto: tcp
+
+- name: Ensure UFW is enabled
+  become: true
+  ufw:
+    state: enabled
+    policy: allow

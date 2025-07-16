@@ -1,0 +1,40 @@
+---
+- name: Download prometheus-nginxlog-exporter .deb package
+  ansible.builtin.get_url:
+    url: https://github.com/martin-helmich/prometheus-nginxlog-exporter/releases/download/v1.9.2/prometheus-nginxlog-exporter_1.9.2_linux_amd64.deb
+    dest: /tmp/prometheus-nginxlog-exporter_1.9.2_linux_amd64.deb
+    mode: '0644'
+
+- name: Install prometheus-nginxlog-exporter from .deb
+  ansible.builtin.apt:
+    deb: /tmp/prometheus-nginxlog-exporter_1.9.2_linux_amd64.deb
+
+- name: Create systemd unit for prometheus-nginxlog-exporter
+  copy:
+    dest: /etc/systemd/system/prometheus-nginxlog-exporter.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Prometheus Nginx Log Exporter
+      After=network.target
+
+      [Service]
+      ExecStart=/usr/sbin/prometheus-nginxlog-exporter -config-file /etc/prometheus-nginxlog-exporter.hcl
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+- name: Create configuration file for prometheus-nginxlog-exporter
+  template:
+    src: prometheus-nginxlog-exporter.hcl.j2
+    dest: /etc/prometheus-nginxlog-exporter.hcl
+    mode: '0644'
+
+- name: Reload systemd and start prometheus-nginxlog-exporter
+  systemd:
+    name: prometheus-nginxlog-exporter
+    daemon_reload: yes
+    enabled: yes
+    state: started
+

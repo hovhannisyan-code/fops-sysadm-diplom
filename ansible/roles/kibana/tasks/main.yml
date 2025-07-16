@@ -1,0 +1,28 @@
+- name: Copy Kibana .deb package
+  copy:
+    src: kibana-8.11.0-amd64.deb
+    dest: /tmp/kibana.deb
+    mode: "0644"
+
+- name: Install Kibana from local .deb
+  apt:
+    deb: /tmp/kibana.deb
+
+- name: Ensure Kibana config directory exists
+  file:
+    path: /etc/kibana
+    state: directory
+    mode: "0755"
+
+- name: Configure kibana.yml
+  template:
+    src: kibana.yml.j2
+    dest: /etc/kibana/kibana.yml
+    mode: "0644"
+  notify: Restart Kibana
+
+- name: Enable and start Kibana
+  systemd:
+    name: kibana
+    enabled: true
+    state: started

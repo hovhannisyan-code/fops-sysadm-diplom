@@ -1,0 +1,8 @@
+# This file contains metadata for the instance
+users:
+  - name: gor
+    groups: sudo
+    shell: /bin/bash
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPTLtGJ6C+HiXfyz6Oa1vrRor0nstOKYdMOVhQ/c+2uj gor-home

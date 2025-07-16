@@ -1,0 +1,58 @@
+- name: Install Prometheus
+  shell: |
+    useradd --no-create-home --shell /bin/false prometheus || true
+    mkdir -p /etc/prometheus /var/lib/prometheus
+    cd /tmp
+    curl -LO https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz
+    tar xvf prometheus-2.52.0.linux-amd64.tar.gz
+    cp prometheus-2.52.0.linux-amd64/prometheus /usr/local/bin/
+    cp prometheus-2.52.0.linux-amd64/promtool /usr/local/bin/
+    cp -r prometheus-2.52.0.linux-amd64/consoles /etc/prometheus/
+    cp -r prometheus-2.52.0.linux-amd64/console_libraries /etc/prometheus/
+  args:
+    creates: /usr/local/bin/prometheus
+
+- name: Configure Prometheus using template
+  become: true
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+
+- name: Create systemd service
+  become: true
+  copy:
+    dest: /etc/systemd/system/prometheus.service
+    content: |
+      [Unit]
+      Description=Prometheus
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      User=prometheus
+      ExecStart=/usr/local/bin/prometheus \
+        --config.file=/etc/prometheus/prometheus.yml \
+        --storage.tsdb.path=/var/lib/prometheus
+
+      [Install]
+      WantedBy=multi-user.target
+
+
+- name: Ensure Prometheus directories are owned by prometheus user
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: prometheus
+    group: prometheus
+    recurse: yes
+  loop:
+    - /etc/prometheus
+    - /var/lib/prometheus
+    
+
+- name: Start Prometheus
+  become: true
+  systemd:
+    name: prometheus
+    enabled: true
+    state: started

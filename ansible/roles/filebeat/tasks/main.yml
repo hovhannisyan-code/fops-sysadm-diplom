@@ -1,0 +1,29 @@
+- name: Copy Filebeat .deb package
+  ansible.builtin.copy:
+    src: filebeat-8.11.0-amd64.deb
+    dest: /tmp/filebeat-8.11.0-amd64.deb
+    mode: '0644'
+
+- name: Install Filebeat from local .deb
+  ansible.builtin.apt:
+    deb: /tmp/filebeat-8.11.0-amd64.deb
+  register: filebeat_install
+
+- name: Ensure Filebeat config directory exists
+  ansible.builtin.file:
+    path: /etc/filebeat
+    state: directory
+    mode: '0755'
+
+- name: Deploy filebeat.yml config
+  ansible.builtin.template:
+    src: filebeat.yml.j2
+    dest: /etc/filebeat/filebeat.yml
+    mode: '0644'
+  notify: Restart Filebeat
+
+- name: Enable Filebeat systemd service
+  ansible.builtin.systemd:
+    name: filebeat
+    enabled: yes
+    state: started

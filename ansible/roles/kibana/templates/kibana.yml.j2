@@ -1,0 +1,5 @@
+server.host: "0.0.0.0"
+server.publicBaseUrl: "http://{{ hostvars[groups['kibana'][0]].public_ip }}:5601"
+elasticsearch.hosts: {{ groups['elasticsearch'] | map('extract', hostvars, 'ansible_host') | map('regex_replace', '^(.*)$', 'http://\\1:9200') | join(',') }}
+telemetry.enabled: false
+monitoring.ui.container.elasticsearch.enabled: true
